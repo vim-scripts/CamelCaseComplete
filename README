@@ -1,0 +1,28 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=3915
+
+DESCRIPTION
+This plugin offers a keyword completion that is limited to identifiers which
+adhere to either CamelCase ("anIdentifier") or underscore_notation
+("an_identifier") naming conventions. This often results in a single (or very
+few) matches and thus allows quick completion of function, class and variable
+names.
+The list of completion candidates can be restricted by triggering completion
+on all or some of the initial letters of each word fragment; e.g. "vlcn" would
+expand to "veryLongClassName" and "verbose_latitude_correction_numeric".
+Non-alphabetic keyword characters can be thrown in, too, to both widen the
+search to word fragments joined by the keywords (e.g. "joined#words") and to
+narrow down the number of CamelCase and underscore_word matches. 
+
+RELATED WORKS								     *
+- camelcasemotion (vimscript #1905) provides special motions ,w ,b and ,e
+  through CamelCaseWords and underscore_notation and corresponding text
+  objects. 
+- Loosely based on and similar to the "Custom keyword completion" from
+  http://vim.wikia.com/wiki/Custom_keyword_completion
+- Check out the CompleteHelper.vim plugin page (vimscript #3914) for a full
+  list of insert mode completions powered by it. 
+
+USAGE
+CTRL-X CTRL-C		Find matches for CamelCaseWords and underscore_words
+			whose individual word fragments begin with the typed
+			letters in front of the cursor. 
