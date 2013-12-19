@@ -1,4 +1,4 @@
-*CamelCaseComplete.txt* Insert mode completion that expands CamelCaseWords and underscore_words based on anchor characters for each word fragment. 
+*CamelCaseComplete.txt* Insert mode completion that expands CamelCaseWords and underscore_words based on anchor characters for each word fragment.
 
 		    CAMEL CASE COMPLETE    by Ingo Karkat
 						       *CamelCaseComplete.vim*
@@ -24,24 +24,29 @@ on all or some of the initial letters of each word fragment; e.g. "vlcn" would
 expand to "veryLongClassName" and "verbose_latitude_correction_numeric".
 Non-alphabetic keyword characters can be thrown in, too, to both widen the
 search to word fragments joined by the keywords (e.g. "joined#words") and to
-narrow down the number of CamelCase and underscore_word matches. 
+narrow down the number of CamelCase and underscore_word matches.
 
-RELATED WORKS								     *
+SEE ALSO								     *
 
 - camelcasemotion (vimscript #1905) provides special motions ,w ,b and ,e
   through CamelCaseWords and underscore_notation and corresponding text
-  objects. 
+  objects.
 - Loosely based on and similar to the "Custom keyword completion" from
   http://vim.wikia.com/wiki/Custom_keyword_completion
-- Check out the CompleteHelper.vim plugin page (vimscript #3914) for a full
-  list of insert mode completions powered by it. 
+- Check out the |CompleteHelper.vim| plugin page (vimscript #3914) for a full
+  list of insert mode completions powered by it.
 
 ==============================================================================
 USAGE						     *CamelCaseComplete-usage*
+
+In insert mode, type some or all first letters of the desired CamelCaseWord or
+underscore_word, then invoke the completion via CTRL-X CTRL-C.
+You can then search forward and backward via CTRL-N / CTRL-P, as usual.
+
 							     *i_CTRL-X_CTRL-C*
 CTRL-X CTRL-C		Find matches for CamelCaseWords and underscore_words
 			whose individual word fragments begin with the typed
-			letters in front of the cursor. 
+			letters in front of the cursor.
 
 			STRICT vs. RELAXED
 			The initial letter of the first fragment must always
@@ -72,23 +77,23 @@ CTRL-X CTRL-C		Find matches for CamelCaseWords and underscore_words
 			same case as used in the first typed letter (unless
 			'ignorecase'); all subsequent fragments must start
 			with an uppercase letter. Thus, you do not need to
-			type "aCCW"; "accw" will do, too. 
+			type "aCCW"; "accw" will do, too.
 			    "aCCW", "accw" -> "aCamelCaseWord" ~
 			    "TCCW", "Tccw" -> "TheCamelCaseWord" ~
 			When both 'ignorecase' and 'smartcase' are set, the
 			search for completions is case-insensitive unless the
-			completion base contains uppercase characters: 
+			completion base contains uppercase characters:
 			    "ai" -> "an_identifier", "AN_Identifier" ~
 			    "AI" -> "AN_Identifier" ~
 
-			CASE-INSENSITIVE FALLBACK 
+			CASE-INSENSITIVE FALLBACK
 			When no (strict or relaxed) matches are found in a
 			case-sensitive ('noignorecase') search, a
 			case-insensitive search is attempted when the
 			completion base only consists of lowercase letters.
 			Therefore, you do not necessarily need to capitalize
 			the completion base when the completion candidates
-			only exist in one upper-/lower-case spelling. 
+			only exist in one upper-/lower-case spelling.
 			    "tccw" -> "TheCamelCaseWord" ~
 			    (Unless "theCamelCaseWord" also exists.)
 			Cp. |g:CamelCaseComplete_CaseInsensitiveFallback|
@@ -97,24 +102,24 @@ CTRL-X CTRL-C		Find matches for CamelCaseWords and underscore_words
 			when a lowercase completion base is given. The
 			fallback only offers the uppercase match when no
 			such lowercase match exists (and again a lowercase
-			completion base is given). 
+			completion base is given).
 
 			NON-ALPHABETIC KEYWORD CHARACTERS
 			Each letter matches the beginning of a CamelCase or
 			underscore_word fragment. You can add non-letter
 			keyword characters (e.g. "#" after :setlocal
-			iskeyword+=#) to narrow down the number of matches: 
+			iskeyword+=#) to narrow down the number of matches:
 			    "smi"  -> "specMasterIndex", "scope#myIdentifier" ~
 			    "s#mi" -> "scope#myIdentifier" ~
 			When the last typed completion letter is a
 			non-alphabetic keyword, it must be followed by a full
-			CamelWord or underscore_word: 
+			CamelWord or underscore_word:
 			    "Cw!"  -> "CamelWord!MoreCamel" ~
 			    "Cw!"  -> "" -/NOT/-> "CamelWord!Word" ~
 			You can also use a non-alphabetic keyword character in
 			the middle to match any words that are joined by the
 			keyword character, even though they are only similar
-			to CamelWords and underscore_words: 
+			to CamelWords and underscore_words:
 			    "jw"   -> "" ~
 			    "j#w"  -> "joined#words" ~
 
@@ -122,43 +127,49 @@ CTRL-X CTRL-C		Find matches for CamelCaseWords and underscore_words
 INSTALLATION				      *CamelCaseComplete-installation*
 
 This script is packaged as a |vimball|. If you have the "gunzip" decompressor
-in your PATH, simply edit the *.vba.gz package in Vim; otherwise, decompress
+in your PATH, simply edit the *.vmb.gz package in Vim; otherwise, decompress
 the archive first, e.g. using WinZip. Inside Vim, install by sourcing the
 vimball or via the |:UseVimball| command. >
-    vim CamelCaseComplete.vba.gz
+    vim CamelCaseComplete*.vmb.gz
     :so %
-To uninstall, use the |:RmVimball| command. 
+To uninstall, use the |:RmVimball| command.
 
 DEPENDENCIES				      *CamelCaseComplete-dependencies*
 
-- Requires Vim 7.1 or higher. 
-- Requires the CompleteHelper.vim plugin (vimscript #3914). 
+- Requires Vim 7.1 or higher.
+- Requires the |CompleteHelper.vim| plugin (vimscript #3914).
 
 ==============================================================================
 CONFIGURATION				     *CamelCaseComplete-configuration*
 
-For a permanent configuration, put the following commands into your |vimrc|: 
+For a permanent configuration, put the following commands into your |vimrc|:
 
 		 *b:CamelCaseComplete_complete* *g:CamelCaseComplete_complete*
 Analoguous to the 'complete' option, you can specify which buffers will be
-scanned for completion candidates. Currently, only '.' (current buffer) and
-'w' (buffers from other windows) are supported. >
-    let g:CamelCaseComplete_complete = '.,w'
+scanned for completion candidates. Currently, '.' (current buffer), 'w'
+(buffers from other windows), and 'b' (other listed buffers) are supported. >
+    let g:CamelCaseComplete_complete = '.,w,b'
 The global setting can be overridden for a particular buffer
-(b:CamelCaseComplete_complete). 
+(b:CamelCaseComplete_complete).
 
 					   *g:CamelCaseComplete_FindStartMark*
 To disable the removal of the (mostly useless) completion base when there
 are no matches: >
     let g:CamelCaseComplete_FindStartMark = ''
-<	
+<
 				 *g:CamelCaseComplete_CaseInsensitiveFallback*
 You can disable the fallback to a case-insensitive search when the completion
 base only contains lowercase letters. Then, (together with 'noignorecase'),
 the case of the first CamelWord fragment and all underscore_word fragments
 must always match exactly: >
     let g:CamelCaseComplete_CaseInsensitiveFallback = 0
-<	
+<
+						     *CamelCaseComplete-remap*
+If you want to use a different mapping, map your keys to the
+<Plug>(CamelCaseComplete) mapping target _before_ sourcing the script (e.g.
+in your |vimrc|): >
+    imap <C-x><C-c> <Plug>(CamelCaseComplete)<Plug>(CamelCasePostComplete)
+<
 ==============================================================================
 LIMITATIONS				       *CamelCaseComplete-limitations*
 
@@ -171,15 +182,21 @@ IDEAS						     *CamelCaseComplete-ideas*
 ==============================================================================
 HISTORY						   *CamelCaseComplete-history*
 
+1.01	19-Dec-2013
+- Factor out CamelCaseComplete#BuildRegexp() for re-use by the new
+  InnerFragmentComplete.vim plugin.
+- Add value "b" (other listed buffers) to the plugin's 'complete' option
+  offered by CompleteHelper.vim 1.20.
+
 1.00	01-Feb-2012
-First published version. 
+First published version.
 
 0.01	08-Jun-2009
-Started development. 
+Started development.
 
 ==============================================================================
-Copyright: (C) 2009-2012 Ingo Karkat
-The VIM LICENSE applies to this script; see |copyright|. 
+Copyright: (C) 2009-2013 Ingo Karkat
+The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>
 ==============================================================================

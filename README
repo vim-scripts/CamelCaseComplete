@@ -11,18 +11,22 @@ on all or some of the initial letters of each word fragment; e.g. "vlcn" would
 expand to "veryLongClassName" and "verbose_latitude_correction_numeric".
 Non-alphabetic keyword characters can be thrown in, too, to both widen the
 search to word fragments joined by the keywords (e.g. "joined#words") and to
-narrow down the number of CamelCase and underscore_word matches. 
+narrow down the number of CamelCase and underscore_word matches.
 
-RELATED WORKS								     *
+SEE ALSO
 - camelcasemotion (vimscript #1905) provides special motions ,w ,b and ,e
   through CamelCaseWords and underscore_notation and corresponding text
-  objects. 
+  objects.
 - Loosely based on and similar to the "Custom keyword completion" from
   http://vim.wikia.com/wiki/Custom_keyword_completion
 - Check out the CompleteHelper.vim plugin page (vimscript #3914) for a full
-  list of insert mode completions powered by it. 
+  list of insert mode completions powered by it.
 
 USAGE
-CTRL-X CTRL-C		Find matches for CamelCaseWords and underscore_words
-			whose individual word fragments begin with the typed
-			letters in front of the cursor. 
+In insert mode, type some or all first letters of the desired CamelCaseWord or
+underscore_word, then invoke the completion via CTRL-X CTRL-C.
+You can then search forward and backward via CTRL-N / CTRL-P, as usual.
+
+CTRL-X CTRL-C           Find matches for CamelCaseWords and underscore_words
+                        whose individual word fragments begin with the typed
+                        letters in front of the cursor.
