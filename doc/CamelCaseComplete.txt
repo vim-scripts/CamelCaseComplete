@@ -137,6 +137,8 @@ To uninstall, use the |:RmVimball| command.
 DEPENDENCIES				      *CamelCaseComplete-dependencies*
 
 - Requires Vim 7.1 or higher.
+- Requires the |ingo-library.vim| plugin (vimscript #4433), version 1.010 or
+  higher.
 - Requires the |CompleteHelper.vim| plugin (vimscript #3914).
 
 ==============================================================================
@@ -145,13 +147,12 @@ CONFIGURATION				     *CamelCaseComplete-configuration*
 For a permanent configuration, put the following commands into your |vimrc|:
 
 		 *b:CamelCaseComplete_complete* *g:CamelCaseComplete_complete*
-Analoguous to the 'complete' option, you can specify which buffers will be
-scanned for completion candidates. Currently, '.' (current buffer), 'w'
-(buffers from other windows), and 'b' (other listed buffers) are supported. >
-    let g:CamelCaseComplete_complete = '.,w,b'
-The global setting can be overridden for a particular buffer
-(b:CamelCaseComplete_complete).
-
+By default, the 'complete' option controls which buffers will be scanned for
+completion candidates. You can override that either for the entire plugin, or
+only for particular buffers; see |CompleteHelper_complete| for supported
+values. >
+    let g:CamelCaseComplete_complete = '.,w,b,u'
+<
 					   *g:CamelCaseComplete_FindStartMark*
 To disable the removal of the (mostly useless) completion base when there
 are no matches: >
@@ -182,6 +183,13 @@ IDEAS						     *CamelCaseComplete-ideas*
 ==============================================================================
 HISTORY						   *CamelCaseComplete-history*
 
+1.02	23-Apr-2015
+- Need special case for given underscore anchor (e.g. in "f_br" base); then,
+  the assertion for alphabetic anchors (here: "b") must _not_ assert that
+  there's no underscore before it.
+- Remove default g:CamelCaseComplete_complete configuration and default to
+  'complete' option value instead.
+
 1.01	19-Dec-2013
 - Factor out CamelCaseComplete#BuildRegexp() for re-use by the new
   InnerFragmentComplete.vim plugin.
@@ -195,7 +203,7 @@ First published version.
 Started development.
 
 ==============================================================================
-Copyright: (C) 2009-2013 Ingo Karkat
+Copyright: (C) 2009-2015 Ingo Karkat
 The VIM LICENSE applies to this plugin; see |copyright|.
 
 Maintainer:	Ingo Karkat <ingo@karkat.de>

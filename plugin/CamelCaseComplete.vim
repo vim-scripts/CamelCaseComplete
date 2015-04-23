@@ -3,14 +3,17 @@
 "
 " DEPENDENCIES:
 "   - Requires Vim 7.1 or higher.
-"   - CamelCaseComplete.vim autoload script.
+"   - CamelCaseComplete.vim autoload script
 "
-" Copyright: (C) 2009-2012 Ingo Karkat
+" Copyright: (C) 2009-2015 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.02.016	12-Jan-2015	Remove default g:CamelCaseComplete_complete
+"				configuration and default to 'complete' option
+"				value instead.
 "   1.01.015	03-Sep-2012	Add value "b" (other listed buffers) to the
 "				plugin's 'complete' option offered by
 "				CompleteHelper.vim 1.20.
@@ -32,9 +35,6 @@ let g:loaded_CamelCaseComplete = 1
 
 "- configuration ---------------------------------------------------------------
 
-if ! exists('g:CamelCaseComplete_complete')
-    let g:CamelCaseComplete_complete = '.,w,b'
-endif
 if ! exists('g:CamelCaseComplete_FindStartMark')
     " To avoid clobbering user-set marks, we use the obscure "last exit point of
     " buffer" mark.

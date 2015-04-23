@@ -2,14 +2,22 @@
 " underscore_words based on anchor characters for each word fragment.
 "
 " DEPENDENCIES:
-"   - CompleteHelper.vim autoload script.
+"   - CompleteHelper.vim autoload script
+"   - ingo/plugin/setting.vim autoload script
 "
-" Copyright: (C) 2009-2013 Ingo Karkat
+" Copyright: (C) 2009-2015 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.02.018	07-Apr-2015	Need special case for given underscore anchor
+"				(e.g. in "f_br" base); then, the assertion for
+"				alphabetic anchors (here: "b") must _not_ assert
+"				that there's no underscore before it.
+"   1.02.017	12-Jan-2015	Remove default g:CamelCaseComplete_complete
+"				configuration and default to 'complete' option
+"				value instead.
 "   1.01.016	02-Oct-2013	Factor out CamelCaseComplete#BuildRegexp() for
 "				re-use by the new InnerFragmentComplete.vim
 "				plugin.
@@ -96,11 +104,17 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 function! s:GetCompleteOption()
-    return (exists('b:CamelCaseComplete_complete') ? b:CamelCaseComplete_complete : g:CamelCaseComplete_complete)
+    return ingo#plugin#setting#GetBufferLocal('CamelCaseComplete_complete', &complete)
 endfunction
 
 function! s:ToCamelCaseAnchor( anchor )
     return '\%(' . toupper(a:anchor) . '\&\u\|\%(\k\&\A\)\+' . a:anchor . '\)'
+endfunction
+function! s:BeforeAlphaAnchorAfterKeywordFragmentExpr( isAfterUnderscoreFragment )
+    return (a:isAfterUnderscoreFragment ?
+    \   '\%(\k\&\A\)\@<=' :
+    \   '\%(_\@!\k\&\A\)\@<='
+    \)
 endfunction
 function! s:BuildAnyMatchFragment()
     " Without any anchors, build a regexp that matches any CamelCaseWord or
@@ -113,14 +127,14 @@ function! s:BuildAnyMatchFragment()
     \   '\)'
     return [l:anyFragmentRegexp, l:anyFragmentRegexp]
 endfunction
-function! s:BuildSingleAlphabeticAnchorFragment( isAfterKeywordFragment, anchor )
+function! s:BuildSingleAlphabeticAnchorFragment( isAfterKeywordFragment, isAfterUnderscoreFragment, anchor )
     " With just one anchor, build a regexp that matches any CamelCaseWord or
     " underscore_word starting with the anchor (possibly preceded by leading
     " underscore(s)).
     let l:singleAnchorFragmentRegexp =
     \   '\%(' .
     \	(a:isAfterKeywordFragment ?
-    \	    '\%(\%(_\@!\k\&\A\)\@<=' . a:anchor . '\|\l\+' . s:ToCamelCaseAnchor(a:anchor) . '\)' . '\%(_\@!\k\)\*_\@!' :
+    \	    '\%(' . s:BeforeAlphaAnchorAfterKeywordFragmentExpr(a:isAfterUnderscoreFragment) . a:anchor . '\|\l\+' . s:ToCamelCaseAnchor(a:anchor) . '\)' . '\%(_\@!\k\)\*_\@!' :
     \	    a:anchor . '\%(_\@!\k\)\*\%(_\@!\k\&\U\)\%(_\@!\k\)\*\u\k\+'
     \	) .
     \   '\|' .
@@ -128,7 +142,7 @@ function! s:BuildSingleAlphabeticAnchorFragment( isAfterKeywordFragment, anchor 
     \   '\)'
     return [l:singleAnchorFragmentRegexp, l:singleAnchorFragmentRegexp]
 endfunction
-function! s:BuildAlphabeticRegexpFragments( isStartFragment, isAfterKeywordFragment, anchors )
+function! s:BuildAlphabeticRegexpFragments( isStartFragment, isAfterKeywordFragment, isAfterUnderscoreFragment, anchors )
     " We need at least two anchors in total to be able to build an exact match
     " for CamelCaseWords or underscore_words.
     if len(a:anchors) < 1 | throw 'ASSERT: Must pass at least one anchor.' | endif
@@ -172,7 +186,7 @@ function! s:BuildAlphabeticRegexpFragments( isStartFragment, isAfterKeywordFragm
     \	    (a:isStartFragment ?
     \		a:anchors[0] :
     \		(a:isAfterKeywordFragment ?
-    \		    '\%(\%(_\@!\k\&\A\)\@<=' . a:anchors[0] . '\|\l\+' . s:ToCamelCaseAnchor(a:anchors[0]) . '\)' :
+    \		    '\%(' . s:BeforeAlphaAnchorAfterKeywordFragmentExpr(a:isAfterUnderscoreFragment) . a:anchors[0] . '\|\l\+' . s:ToCamelCaseAnchor(a:anchors[0]) . '\)' :
     \		    '_\@<!' . l:camelCaseAnchors[0])
     \	    ) . '\%(_\@!\k\)\*_\@!'
     \	] +
@@ -203,7 +217,7 @@ function! s:BuildAlphabeticRegexpFragments( isStartFragment, isAfterKeywordFragm
     let l:underscoreRelaxedFragments =
     \	[
     \	    (a:isAfterKeywordFragment ?
-    \		'\%(_\@!\k\&\A\)\@<=' . '_\*' . a:anchors[0] . '\k\+\%(\%(_\|\k\&\A\)\@=\|_\k\+\)\|_\+' . a:anchors[0] . '\k\+' :
+    \		s:BeforeAlphaAnchorAfterKeywordFragmentExpr(a:isAfterUnderscoreFragment) . '_\*' . a:anchors[0] . '\k\+\%(\%(_\|\k\&\A\)\@=\|_\k\+\)\|_\+' . a:anchors[0] . '\k\+' :
     \		'_\*' . a:anchors[0] . '\k\+\%(_\|\k\&\A\)\@='
     \	    )
     \	] +
@@ -254,6 +268,7 @@ function! CamelCaseComplete#BuildRegexp( base, isWidenToEnsureMultiFragmentMatch
     let l:alphabeticAnchorSequence = []
     let l:isStartAlphabeticFragment = 1
     let l:isAfterKeywordFragment = 0
+    let l:isAfterUnderscoreFragment = 0
     while l:idx < len(l:anchors)
 	let l:anchor = l:anchors[l:idx]
 	if s:IsAlpha(l:anchor)
@@ -262,8 +277,8 @@ function! CamelCaseComplete#BuildRegexp( base, isWidenToEnsureMultiFragmentMatch
 		" With just one alphabetic anchor at all, build special regexps
 		" that match anything resembling CamelCaseWords /
 		" underscore_words, unless a keyword anchor still follows.
-		let [l:strictRegexpFragment, l:relaxedRegexpFragment] = s:BuildSingleAlphabeticAnchorFragment(l:isAfterKeywordFragment, l:anchor)
-"****D echomsg '####' l:isStartAlphabeticFragment l:isAfterKeywordFragment 's:' . l:anchor
+		let [l:strictRegexpFragment, l:relaxedRegexpFragment] = s:BuildSingleAlphabeticAnchorFragment(l:isAfterKeywordFragment, l:isAfterUnderscoreFragment, l:anchor)
+"****D echomsg '####' l:isStartAlphabeticFragment l:isAfterKeywordFragment l:isAfterUnderscoreFragment 's:' . l:anchor
 	    else
 		" If an anchor is alphabetic, build a regexp fragment from it and
 		" all following alphabetic anchors. We cannot just concatenate
@@ -273,17 +288,19 @@ function! CamelCaseComplete#BuildRegexp( base, isWidenToEnsureMultiFragmentMatch
 		    call add(l:alphabeticAnchorSequence, l:anchors[l:idx])
 		endwhile
 		let [l:strictRegexpFragment, l:relaxedRegexpFragment] =
-		\   s:BuildAlphabeticRegexpFragments(l:isStartAlphabeticFragment, l:isAfterKeywordFragment, l:alphabeticAnchorSequence)
+		\   s:BuildAlphabeticRegexpFragments(l:isStartAlphabeticFragment, l:isAfterKeywordFragment, l:isAfterUnderscoreFragment, l:alphabeticAnchorSequence)
 
-"****D echomsg '####' l:isStartAlphabeticFragment l:isAfterKeywordFragment join(l:alphabeticAnchorSequence)
+"****D echomsg '####' l:isStartAlphabeticFragment l:isAfterKeywordFragment l:isAfterUnderscoreFragment join(l:alphabeticAnchorSequence)
 	    endif
 	    let l:isStartAlphabeticFragment = 0
 	    let l:isAfterKeywordFragment = 0
+	    let l:isAfterUnderscoreFragment= 0
 	else
 	    " If an anchor is a keyword character, just match that character.
 	    let [l:strictRegexpFragment, l:relaxedRegexpFragment] = s:BuildKeywordRegexpFragment(l:anchor)
 	    let l:alphabeticAnchorSequence = []	" Reset.
 	    let l:isAfterKeywordFragment = 1
+	    let l:isAfterUnderscoreFragment= (l:anchor ==# '_')
 "****D echomsg '####' '"'. l:anchor . '"'
 	endif
 
